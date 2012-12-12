@@ -1,0 +1,47 @@
+From 217d0b426985f87f7c3fa55f96b64c53e568f994 Mon Sep 17 00:00:00 2001
+From: Spike Grobstein <me@spike.cx>
+Date: Tue, 11 Dec 2012 23:29:33 -0500
+Subject: [PATCH] added permissions checks to NZB
+
+---
+ www/lib/nzb.php |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
+diff --git a/www/lib/nzb.php b/www/lib/nzb.php
+index fd7afab..4930f26 100644
+--- a/www/lib/nzb.php
++++ b/www/lib/nzb.php
+@@ -15,6 +15,11 @@ class NZB
+ 	function writeNZBforReleaseId($relid, $relguid, $name, $catId, $path, $echooutput=false)
+ 	{
+ 
++		if (!is_writeable(dirname($path)))
++		{
++		  throw new Exception(__METHOD__ . ' Cannot write NZB. Permission denied. ('.$path.')');
++		}
++
+ 		$db = new DB();
+ 		$binaries = array();
+ 		$cat = new Category();
+@@ -77,6 +82,18 @@ class NZB
+ 			$sitenzbpath = $site->nzbpath;
+ 		}
+ 
++		if ($createIfDoesntExist && !file_exists($nzbpath))
++		{
++		if(is_writable(dirname($nzbpath)))
++		{
++			mkdir($nzbpath);
++		}
++		else
++		{
++			throw new Exception(__METHOD__ . ' Unable to create directory for NZB. Permission denied: '.$nzbpath);
++		}
++		}
++
+ 		$nzbpath = $sitenzbpath.substr($releaseGuid, 0, 1)."/";
+ 
+ 		if ($createIfDoesntExist && !file_exists($nzbpath))
+-- 
+1.7.10.2 (Apple Git-33)
+
